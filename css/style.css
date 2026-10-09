@@ -13,6 +13,8 @@
   --down: #C23A2B;
   --sample-bg: #FFF3D6;
   --sample-ink: #7A5200;
+  --info-bg: #E3ECFA;
+  --info-ink: #24467F;
   --c1: #0C6B73;
   --c2: #3D5BA9;
   --c3: #B5762A;
@@ -31,7 +33,7 @@
   :root:not([data-theme="light"]) {
     --bg: #0B1218; --surface: #131D25; --surface-2: #18242E; --ink: #E6EDF2; --muted: #93A3B0; --line: #253542;
     --accent: #3DB5B5; --accent-ink: #062226; --accent-soft: #143338; --up: #3CC48A; --down: #F0705F;
-    --sample-bg: #3A2E10; --sample-ink: #F4CF7A;
+    --sample-bg: #3A2E10; --sample-ink: #F4CF7A; --info-bg: #1C2B45; --info-ink: #A9C3F0;
     --c1: #3DB5B5; --c2: #7D97E8; --c3: #E0A458; --c4: #B58BD8; --c5: #5CC98C; --c6: #E07A93; --c-cash: #5E6E7B; --bar-cost: #3A4B58;
     --shadow: none;
     color-scheme: dark;
@@ -40,7 +42,7 @@
 :root[data-theme="dark"] {
   --bg: #0B1218; --surface: #131D25; --surface-2: #18242E; --ink: #E6EDF2; --muted: #93A3B0; --line: #253542;
   --accent: #3DB5B5; --accent-ink: #062226; --accent-soft: #143338; --up: #3CC48A; --down: #F0705F;
-  --sample-bg: #3A2E10; --sample-ink: #F4CF7A;
+  --sample-bg: #3A2E10; --sample-ink: #F4CF7A; --info-bg: #1C2B45; --info-ink: #A9C3F0;
   --c1: #3DB5B5; --c2: #7D97E8; --c3: #E0A458; --c4: #B58BD8; --c5: #5CC98C; --c6: #E07A93; --c-cash: #5E6E7B; --bar-cost: #3A4B58;
   --shadow: none;
   color-scheme: dark;
@@ -271,6 +273,52 @@ h2 { font-size: 17px; font-weight: 600; }
 .preview:empty { display: none; }
 .sheet-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding-top: 4px; }
 .spacer { flex: 1; }
+
+/* Import & backup */
+.tag-csv { background: var(--info-bg); color: var(--info-ink); }
+.data-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.data-action {
+  display: flex; flex-direction: column; gap: 2px; text-align: left;
+  padding: 12px 14px; border-radius: 12px; cursor: pointer;
+  background: var(--surface-2); border: 1px solid var(--line);
+}
+.data-action:hover { border-color: var(--accent); }
+.data-action strong { font-size: 15px; font-weight: 600; color: var(--accent); }
+.data-action span { font-size: 12px; color: var(--muted); }
+.data-message { font-size: 13px; padding: 8px 12px; border-radius: 10px; background: var(--accent-soft); color: var(--ink); }
+.data-message.is-error { background: var(--surface-2); color: var(--down); border: 1px solid var(--down); }
+.undo-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  padding: 8px 8px 8px 12px; border-radius: 10px; background: var(--accent-soft); font-size: 14px;
+}
+.btn-small { min-height: 34px; padding: 0 12px; font-size: 13px; }
+
+.sheet-wide { max-height: 94vh; }
+@media (min-width: 640px) { .sheet-wide { width: min(860px, calc(100vw - 48px)); max-height: 90vh; overflow-y: auto; } }
+.step { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; min-width: 0; }
+.step h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.mapping-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.mapping-grid select, .field-inline select { font-size: 16px; }
+.field-inline { max-width: 320px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+.chip-new { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.chip-invalid { color: var(--down); border-color: var(--down); background: transparent; }
+.chip-cash { background: var(--info-bg); color: var(--info-ink); border-color: transparent; }
+.err-box { font-size: 13px; color: var(--ink); background: var(--surface-2); border: 1px solid var(--down); border-radius: 10px; padding: 8px 12px; }
+.preview-table td { padding-block: 8px; vertical-align: top; }
+.preview-table .col-sym { max-width: 180px; }
+.preview-table tr.status-duplicate td, .preview-table tr.status-skipped td, .preview-table tr.status-invalid td { color: var(--muted); }
+.preview-table .reason { font-size: 12px; color: var(--muted); white-space: normal; min-width: 160px; }
+.sym-name.sym-name-always { display: block; max-width: 160px; overflow: hidden; text-overflow: ellipsis; font-size: 11px; color: var(--muted); }
+.type-select { min-height: 34px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); font-size: 16px; }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+.check input { width: 20px; height: 20px; margin: 1px 0 0; flex: none; accent-color: var(--accent); }
+.field textarea {
+  width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--surface-2); font-family: var(--font-mono); font-size: 12px; resize: vertical;
+}
+.restore-info { display: flex; flex-direction: column; gap: 4px; font-size: 14px; overflow-wrap: anywhere; }
 
 @media (max-width: 380px) {
   .field-row { grid-template-columns: 1fr; }

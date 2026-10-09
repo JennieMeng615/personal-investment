@@ -57,6 +57,8 @@
       avgCost: h.avgCost,
       price: h.price,
       sample: !!h.sample,
+      source: h.source || null,
+      priceAsOf: h.priceAsOf || null,
       costBasis: costBasis,
       marketValue: marketValue,
       pnl: pnl,
@@ -188,6 +190,10 @@
       var v = check.value;
       v.id = h.id;
       v.sample = h.sample === true;
+      if (h.source === 'csv') {
+        v.source = 'csv';
+        if (typeof h.priceAsOf === 'string') v.priceAsOf = h.priceAsOf.slice(0, 10);
+      }
       holdings.push(v);
     });
     return { version: 1, cash: cash.value, cashSample: raw.cashSample === true, holdings: holdings };

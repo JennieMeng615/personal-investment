@@ -18,7 +18,7 @@
   <header class="topbar">
     <div>
       <h1>计算逻辑测试</h1>
-      <p class="brand-sub">检查总资产、盈亏、收益率、表单校验等计算是否正确</p>
+      <p class="brand-sub">检查总资产、盈亏、收益率、表单校验、CSV 导入导出和备份是否正确</p>
     </div>
     <a class="btn btn-quiet" href="index.html">返回看板</a>
   </header>
@@ -28,10 +28,13 @@
   </section>
 </div>
 <script src="js/calc.js"></script>
+<script src="js/csv.js"></script>
 <script src="tests/calc-cases.js"></script>
+<script src="tests/csv-cases.js"></script>
 <script>
   (function () {
-    var results = window.PortfolioCalcCases(window.PortfolioCalc);
+    var results = window.PortfolioCalcCases(window.PortfolioCalc)
+      .concat(window.PortfolioCSVCases(window.PortfolioCalc, window.PortfolioCSV));
     var failed = results.filter(function (r) { return !r.ok; }).length;
     var summary = document.getElementById('summary');
     summary.textContent = failed

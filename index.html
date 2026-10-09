@@ -92,6 +92,40 @@
     </div>
   </section>
 
+  <section class="panel" aria-labelledby="data-title">
+    <div class="panel-head">
+      <div>
+        <h2 id="data-title">导入与备份</h2>
+        <p class="panel-sub">文件只在这台设备上读取和生成，不会上传到任何地方</p>
+      </div>
+    </div>
+    <div id="undo-bar" class="undo-bar" role="status" hidden>
+      <span id="undo-text"></span>
+      <button type="button" class="btn btn-quiet btn-small" id="undo-btn">撤销</button>
+    </div>
+    <div class="data-actions">
+      <button type="button" class="data-action" id="import-csv-btn">
+        <strong>从 CSV 导入持仓</strong>
+        <span>支持 Fidelity 导出的 Positions 文件。只新增，不覆盖已有持仓</span>
+      </button>
+      <button type="button" class="data-action" id="export-csv-btn">
+        <strong>导出持仓 CSV</strong>
+        <span>可用 Numbers、Excel 打开，也可以再导入</span>
+      </button>
+      <button type="button" class="data-action" id="backup-btn">
+        <strong>备份全部数据</strong>
+        <span>生成 .json 备份文件，换手机或清理浏览器前使用</span>
+      </button>
+      <button type="button" class="data-action" id="restore-btn">
+        <strong>从备份恢复</strong>
+        <span>用备份文件还原。恢复前会先让你确认</span>
+      </button>
+    </div>
+    <input type="file" id="csv-file" accept=".csv,text/csv,text/comma-separated-values,text/plain" hidden>
+    <input type="file" id="backup-file" accept=".json,application/json,text/plain" hidden>
+    <p id="data-message" class="data-message" role="alert" hidden></p>
+  </section>
+
   <div class="charts">
     <section class="panel" aria-labelledby="alloc-title">
       <div class="panel-head">
@@ -193,8 +227,108 @@
   </form>
 </div>
 
+<!-- CSV 导入：字段匹配 + 预览 -->
+<div id="dt-backdrop" class="sheet-backdrop" hidden></div>
+<div id="import-sheet" class="sheet sheet-wide" role="dialog" aria-modal="true" aria-labelledby="import-title" hidden>
+  <div class="sheet-body">
+    <div class="sheet-head">
+      <div>
+        <h2 id="import-title">导入预览</h2>
+        <p id="import-file" class="panel-sub"></p>
+      </div>
+      <button type="button" class="icon-btn dt-close" aria-label="关闭">×</button>
+    </div>
+
+    <div class="step">
+      <h3>1. 匹配字段</h3>
+      <p class="field-hint">已根据表头自动匹配。如果不对，请在下拉框中选择文件里对应的列。</p>
+      <div id="mapping-grid" class="mapping-grid"></div>
+      <label class="field field-inline">
+        <span>未单独指定时，新持仓的类型</span>
+        <select id="default-type">
+          <option value="ETF">ETF</option>
+          <option value="股票">股票</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="step">
+      <h3>2. 检查将要导入的数据</h3>
+      <div id="import-summary" class="chips"></div>
+      <p id="import-missing" class="err-box" hidden></p>
+      <div class="table-wrap">
+        <table class="holdings preview-table">
+          <thead>
+            <tr>
+              <th scope="col">状态</th>
+              <th scope="col" class="col-sym">代码</th>
+              <th scope="col" class="r">持有数量</th>
+              <th scope="col" class="r">平均买入价</th>
+              <th scope="col" class="r">当前价格</th>
+              <th scope="col" class="r">市值</th>
+              <th scope="col">类型</th>
+              <th scope="col">说明</th>
+            </tr>
+          </thead>
+          <tbody id="import-rows"></tbody>
+        </table>
+      </div>
+      <label id="cash-option" class="check" hidden>
+        <input type="checkbox" id="add-cash">
+        <span id="cash-option-text"></span>
+      </label>
+      <p class="field-hint">价格是文件导出那一刻的价格，不是实时行情。导入后的持仓会标上「导入」标签和日期。</p>
+    </div>
+
+    <div class="sheet-actions">
+      <span class="spacer"></span>
+      <button type="button" class="btn btn-quiet dt-close">取消</button>
+      <button type="button" class="btn btn-primary" id="confirm-import-btn" disabled>导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- 导出 / 备份 -->
+<div id="export-sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="export-title" hidden>
+  <div class="sheet-body">
+    <div class="sheet-head">
+      <h2 id="export-title">导出</h2>
+      <button type="button" class="icon-btn dt-close" aria-label="关闭">×</button>
+    </div>
+    <p id="export-desc" class="field-hint"></p>
+    <div class="sheet-actions">
+      <button type="button" class="btn btn-primary" id="save-file-btn">保存到「文件」</button>
+      <button type="button" class="btn btn-quiet" id="copy-btn">复制内容</button>
+    </div>
+    <p id="export-status" class="data-message" role="status" hidden></p>
+    <label class="field">
+      <span>文件内容</span>
+      <textarea id="export-text" rows="6" readonly spellcheck="false"></textarea>
+    </label>
+  </div>
+</div>
+
+<!-- 从备份恢复：确认 -->
+<div id="restore-sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="restore-title" hidden>
+  <div class="sheet-body">
+    <div class="sheet-head">
+      <h2 id="restore-title">从备份恢复</h2>
+      <button type="button" class="icon-btn dt-close" aria-label="关闭">×</button>
+    </div>
+    <div id="restore-info" class="restore-info"></div>
+    <p class="err-box">恢复会用备份<strong>替换</strong>当前的全部持仓和现金。恢复后可以点「撤销」回到现在的状态；建议先「备份全部数据」。</p>
+    <div class="sheet-actions">
+      <span class="spacer"></span>
+      <button type="button" class="btn btn-quiet dt-close">取消</button>
+      <button type="button" class="btn btn-primary" id="confirm-restore-btn">确认恢复</button>
+    </div>
+  </div>
+</div>
+
 <script src="js/calc.js"></script>
+<script src="js/csv.js"></script>
 <script src="js/charts.js"></script>
+<script src="js/data-tools.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

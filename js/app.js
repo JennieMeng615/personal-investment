@@ -37,6 +37,13 @@
     }
   }
 
+  /** 普通编辑（添加/修改/删除/现金）后调用：保存、重新计算，并让「撤销导入」失效。 */
+  function commitEdit() {
+    saveState();
+    render();
+    window.PortfolioDataTools.clearUndo();
+  }
+
   function newId() {
     return 'h-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
   }
@@ -105,6 +112,13 @@
         tag.className = 'tag-sample';
         tag.textContent = '示例';
         symCell.appendChild(tag);
+      }
+      if (h.source === 'csv') {
+        var csvTag = document.createElement('span');
+        csvTag.className = 'tag-sample tag-csv';
+        csvTag.textContent = '导入';
+        csvTag.title = '价格来自 ' + (h.priceAsOf || '') + ' 导入的 CSV 文件，不是实时行情';
+        symCell.appendChild(csvTag);
       }
       var typeTag = document.createElement('span');
       typeTag.className = 'sym-tag';
@@ -271,8 +285,7 @@
         state.holdings.push(v);
       }
     }
-    saveState();
-    render();
+    commitEdit();
     closeSheet();
   }
 
@@ -294,8 +307,7 @@
     }
     var id = editing.id;
     state.holdings = state.holdings.filter(function (h) { return h.id !== id; });
-    saveState();
-    render();
+    commitEdit();
     closeSheet();
   }
 
@@ -315,9 +327,7 @@
     clearTimeout(resetTimer);
     btn.classList.remove('confirming');
     btn.textContent = '恢复示例数据';
-    state = C.createSampleState();
-    saveState();
-    render();
+    window.PortfolioDataTools.replaceWithUndo(C.createSampleState(), '已恢复示例数据。');
   }
 
   // ---------- 事件绑定 ----------
@@ -342,4 +352,13 @@
   });
 
   render();
+
+  window.PortfolioDataTools.init({
+    getState: function () { return state; },
+    setState: function (next) {
+      state = next;
+      saveState();
+      render();
+    }
+  });
 })();
