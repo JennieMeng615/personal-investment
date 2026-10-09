@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F2F5F7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="投资看板">
+  <title>Personal Investment Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div>
+        <h1>Personal Investment Dashboard</h1>
+        <p class="brand-sub">个人投资看板 · 美元计价</p>
+      </div>
+    </div>
+    <span id="sample-pill" class="pill pill-sample" hidden>含示例数据</span>
+  </header>
+
+  <aside class="notice" role="note">
+    <strong>价格不是实时行情。</strong>
+    本页不连接任何银行、券商或行情接口。所有价格都是虚构的示例数据，或由你手动输入；数据只保存在这台设备的浏览器里。
+  </aside>
+
+  <section class="summary" aria-label="资产概览">
+    <div class="hero">
+      <p class="label">总资产</p>
+      <p id="total-assets" class="hero-value num">—</p>
+      <p class="hero-meta">
+        <span id="hero-pnl" class="num">—</span>
+        <span class="muted">持仓总盈亏</span>
+      </p>
+    </div>
+    <div class="tiles">
+      <button type="button" class="tile tile-action" id="edit-cash-btn" aria-label="编辑现金">
+        <span class="label">现金 <span class="edit-hint">编辑</span></span>
+        <span id="kpi-cash" class="tile-value num">—</span>
+        <span id="kpi-cash-sub" class="tile-sub">—</span>
+      </button>
+      <div class="tile">
+        <span class="label">股票和 ETF 市值</span>
+        <span id="kpi-securities" class="tile-value num">—</span>
+        <span id="kpi-securities-sub" class="tile-sub">—</span>
+      </div>
+      <div class="tile">
+        <span class="label">总盈亏</span>
+        <span id="kpi-pnl" class="tile-value num">—</span>
+        <span id="kpi-cost" class="tile-sub">—</span>
+      </div>
+      <div class="tile">
+        <span class="label">收益率</span>
+        <span id="kpi-pnl-pct" class="tile-value num">—</span>
+        <span class="tile-sub">总盈亏 ÷ 持仓总成本</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="holdings-title">
+    <div class="panel-head">
+      <div>
+        <h2 id="holdings-title">持仓</h2>
+        <p class="panel-sub">点「编辑」修改或删除；左右滑动查看全部列</p>
+      </div>
+      <button type="button" class="btn btn-primary" id="add-holding-btn">＋ 添加持仓</button>
+    </div>
+    <div class="table-wrap">
+      <table class="holdings">
+        <thead>
+          <tr>
+            <th scope="col" class="col-sym">代码</th>
+            <th scope="col" class="col-name">名称</th>
+            <th scope="col" class="r">持有数量</th>
+            <th scope="col" class="r">平均买入价</th>
+            <th scope="col" class="r">当前价格</th>
+            <th scope="col" class="r">市值</th>
+            <th scope="col" class="r">盈亏金额</th>
+            <th scope="col" class="r">收益率</th>
+            <th scope="col" class="r"><span class="sr-only">操作</span></th>
+          </tr>
+        </thead>
+        <tbody id="holdings-body"></tbody>
+        <tfoot id="holdings-foot"></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <div class="charts">
+    <section class="panel" aria-labelledby="alloc-title">
+      <div class="panel-head">
+        <div>
+          <h2 id="alloc-title">资产配置</h2>
+          <p class="panel-sub">各项占总资产的比例</p>
+        </div>
+      </div>
+      <div id="allocation-chart" class="alloc"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="perf-title">
+      <div class="panel-head">
+        <div>
+          <h2 id="perf-title">投资表现</h2>
+          <p class="panel-sub">每个持仓的买入成本与当前市值对比</p>
+        </div>
+      </div>
+      <div id="performance-chart" class="perf"></div>
+      <p class="chart-note">没有历史行情数据，因此这里不画走势曲线，只比较成本和按当前价格计算的市值。</p>
+    </section>
+  </div>
+
+  <footer class="footer">
+    <p id="save-status" class="muted">数据保存在本机浏览器中。</p>
+    <div class="footer-actions">
+      <button type="button" class="btn btn-quiet" id="reset-btn">恢复示例数据</button>
+      <a class="btn btn-quiet" href="tests.html">运行计算测试</a>
+    </div>
+    <p class="muted small">本工具仅用于个人记录和学习，不构成投资建议，不会执行任何交易。</p>
+  </footer>
+</div>
+
+<!-- 添加 / 编辑弹窗 -->
+<div id="sheet-backdrop" class="sheet-backdrop" hidden></div>
+<div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+  <form id="holding-form" class="sheet-body" novalidate>
+    <div class="sheet-head">
+      <h2 id="sheet-title">添加持仓</h2>
+      <button type="button" class="icon-btn" id="sheet-close" aria-label="关闭">×</button>
+    </div>
+
+    <div id="holding-fields">
+      <div class="field-row">
+        <label class="field">
+          <span>股票代码</span>
+          <input id="f-symbol" name="symbol" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="例如 VOO">
+          <small class="err" id="e-symbol"></small>
+        </label>
+        <label class="field">
+          <span>类型</span>
+          <select id="f-type" name="type">
+            <option value="ETF">ETF</option>
+            <option value="股票">股票</option>
+          </select>
+          <small class="err" id="e-type"></small>
+        </label>
+      </div>
+      <label class="field">
+        <span>名称</span>
+        <input id="f-name" name="name" autocomplete="off" placeholder="例如 Vanguard S&amp;P 500 ETF（可不填）">
+        <small class="err" id="e-name"></small>
+      </label>
+      <label class="field">
+        <span>持有数量</span>
+        <input id="f-shares" name="shares" inputmode="decimal" autocomplete="off" placeholder="例如 10">
+        <small class="err" id="e-shares"></small>
+      </label>
+      <div class="field-row">
+        <label class="field">
+          <span>平均买入价（$）</span>
+          <input id="f-avgCost" name="avgCost" inputmode="decimal" autocomplete="off" placeholder="例如 420">
+          <small class="err" id="e-avgCost"></small>
+        </label>
+        <label class="field">
+          <span>当前价格（$）</span>
+          <input id="f-price" name="price" inputmode="decimal" autocomplete="off" placeholder="手动输入">
+          <small class="err" id="e-price"></small>
+        </label>
+      </div>
+      <p class="field-hint">当前价格需要你自己从券商 App 等处查看后手动填写，本页不会自动更新。</p>
+      <p id="form-preview" class="preview num"></p>
+    </div>
+
+    <div id="cash-fields" hidden>
+      <label class="field">
+        <span>现金（$）</span>
+        <input id="f-cash" name="cash" inputmode="decimal" autocomplete="off" placeholder="例如 5000">
+        <small class="err" id="e-cash"></small>
+      </label>
+    </div>
+
+    <div class="sheet-actions">
+      <button type="button" class="btn btn-danger" id="delete-btn" hidden>删除此持仓</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn btn-quiet" id="cancel-btn">取消</button>
+      <button type="submit" class="btn btn-primary" id="save-btn">保存</button>
+    </div>
+  </form>
+</div>
+
+<script src="js/calc.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

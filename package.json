@@ -1,0 +1,10 @@
+{
+  "name": "personal-investment-dashboard",
+  "version": "1.0.0",
+  "description": "Personal Investment Dashboard：纯本地、使用模拟数据的个人投资看板",
+  "private": true,
+  "scripts": {
+    "test": "node tests/run-tests.js"
+  },
+  "license": "UNLICENSED"
+}
