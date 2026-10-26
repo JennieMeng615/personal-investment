@@ -1,0 +1,15 @@
+﻿Account Number,Account Name,Symbol,Description,Quantity,Last Price,Last Price Change,Current Value,Today's Gain/Loss Dollar,Today's Gain/Loss Percent,Total Gain/Loss Dollar,Total Gain/Loss Percent,Percent Of Account,Cost Basis Total,Average Cost Basis,Type
+X00000001,Individual (DEMO),SPAXX**,HELD IN MONEY MARKET,,,,$1520.33,,,,,9.10%,,,Cash,
+X00000001,Individual (DEMO),VOO,VANGUARD INDEX FUNDS S&P 500 ETF USD,3,$481.20,+$1.10,$1443.60,+$3.30,+0.23%,+$183.60,+14.57%,8.64%,$1260.00,$420.00,Cash,
+X00000001,Individual (DEMO),QQQ,INVESCO QQQ TR UNIT SER 1,4,$410.00,-$2.50,$1640.00,-$10.00,-0.61%,+$240.00,+17.14%,9.82%,$1400.00,$350.00,Cash,
+X00000001,Individual (DEMO),AAPL,APPLE INC,15,$180.00,+$0.75,$2700.00,+$11.25,+0.42%,-$300.00,-10.00%,16.16%,$3000.00,$200.00,Margin,
+X00000001,Individual (DEMO),Pending Activity,,,,,-$120.00,,,,,,,,,
+X00000002,ROTH IRA (DEMO),FZFXX**,FIDELITY TREASURY MONEY MARKET FUND,500,$1.00,,$500.00,,,,,2.99%,,,Cash,
+X00000002,ROTH IRA (DEMO),QQQ,INVESCO QQQ TR UNIT SER 1,6,$410.00,-$2.50,$2460.00,-$15.00,-0.61%,+$360.00,+17.14%,14.73%,$2100.00,$350.00,Cash,
+X00000002,ROTH IRA (DEMO),SCHD,"SCHWAB STRATEGIC TR US DIVIDEND EQUITY ETF",100,$27.50,+$0.05,$2750.00,+$5.00,+0.18%,+$250.00,+10.00%,16.47%,$2500.00,$25.00,Cash,
+X00000002,ROTH IRA (DEMO),XYZW,"DEMO TRANSFERRED POSITION, CLASS A",10,$55.00,,$550.00,,,--,--,3.29%,--,--,Cash,
+
+"The data and information in this spreadsheet is provided to you solely for your use and is not for distribution. DEMO FILE: all accounts, holdings and prices in this file are fictional."
+
+"Brokerage services are provided by Fidelity Brokerage Services LLC (FBS). This line imitates the export footer for testing."
+"Date downloaded 10/09/2026 4:00 PM ET"

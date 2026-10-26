@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>计算测试 · Personal Investment Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .results { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+    .results li { padding: 8px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); font-size: 14px; }
+    .results .fail { border-color: var(--down); }
+    .results small { display: block; color: var(--down); }
+    .mark { font-weight: 700; margin-right: 6px; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div>
+      <h1>计算逻辑测试</h1>
+      <p class="brand-sub">检查总资产、盈亏、收益率、表单校验、CSV 导入导出和备份是否正确</p>
+    </div>
+    <a class="btn btn-quiet" href="index.html">返回看板</a>
+  </header>
+  <section class="panel">
+    <h2 id="summary">正在运行…</h2>
+    <ul id="results" class="results"></ul>
+  </section>
+</div>
+<script src="js/calc.js"></script>
+<script src="js/csv.js"></script>
+<script src="tests/calc-cases.js"></script>
+<script src="tests/csv-cases.js"></script>
+<script>
+  (function () {
+    var results = window.PortfolioCalcCases(window.PortfolioCalc)
+      .concat(window.PortfolioCSVCases(window.PortfolioCalc, window.PortfolioCSV));
+    var failed = results.filter(function (r) { return !r.ok; }).length;
+    var summary = document.getElementById('summary');
+    summary.textContent = failed
+      ? '有 ' + failed + ' 项失败（共 ' + results.length + ' 项）'
+      : '全部 ' + results.length + ' 项测试通过 ✓';
+    summary.className = failed ? 'down' : 'up';
+    var list = document.getElementById('results');
+    results.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r.ok ? 'pass' : 'fail';
+      var mark = document.createElement('span');
+      mark.className = 'mark ' + (r.ok ? 'up' : 'down');
+      mark.textContent = r.ok ? '✓' : '✗';
+      li.appendChild(mark);
+      li.appendChild(document.createTextNode(r.name));
+      if (!r.ok) {
+        var err = document.createElement('small');
+        err.textContent = r.error;
+        li.appendChild(err);
+      }
+      list.appendChild(li);
+    });
+  })();
+</script>
+</body>
+</html>

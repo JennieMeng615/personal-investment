@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F2F5F7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="投资看板">
+  <title>Personal Investment Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div>
+        <h1>Personal Investment Dashboard</h1>
+        <p class="brand-sub">个人投资看板 · 美元计价</p>
+      </div>
+    </div>
+    <span id="sample-pill" class="pill pill-sample" hidden>含示例数据</span>
+  </header>
+
+  <aside class="notice" role="note">
+    <strong>价格不是实时行情。</strong>
+    本页不连接任何银行、券商或行情接口。所有价格都是虚构的示例数据，或由你手动输入；数据只保存在这台设备的浏览器里。
+  </aside>
+
+  <section class="summary" aria-label="资产概览">
+    <div class="hero">
+      <p class="label">总资产</p>
+      <p id="total-assets" class="hero-value num">—</p>
+      <p class="hero-meta">
+        <span id="hero-pnl" class="num">—</span>
+        <span class="muted">持仓总盈亏</span>
+      </p>
+    </div>
+    <div class="tiles">
+      <button type="button" class="tile tile-action" id="edit-cash-btn" aria-label="编辑现金">
+        <span class="label">现金 <span class="edit-hint">编辑</span></span>
+        <span id="kpi-cash" class="tile-value num">—</span>
+        <span id="kpi-cash-sub" class="tile-sub">—</span>
+      </button>
+      <div class="tile">
+        <span class="label">股票和 ETF 市值</span>
+        <span id="kpi-securities" class="tile-value num">—</span>
+        <span id="kpi-securities-sub" class="tile-sub">—</span>
+      </div>
+      <div class="tile">
+        <span class="label">总盈亏</span>
+        <span id="kpi-pnl" class="tile-value num">—</span>
+        <span id="kpi-cost" class="tile-sub">—</span>
+      </div>
+      <div class="tile">
+        <span class="label">收益率</span>
+        <span id="kpi-pnl-pct" class="tile-value num">—</span>
+        <span class="tile-sub">总盈亏 ÷ 持仓总成本</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="holdings-title">
+    <div class="panel-head">
+      <div>
+        <h2 id="holdings-title">持仓</h2>
+        <p class="panel-sub">点「编辑」修改或删除；左右滑动查看全部列</p>
+      </div>
+      <button type="button" class="btn btn-primary" id="add-holding-btn">＋ 添加持仓</button>
+    </div>
+    <div class="table-wrap">
+      <table class="holdings">
+        <thead>
+          <tr>
+            <th scope="col" class="col-sym">代码</th>
+            <th scope="col" class="col-name">名称</th>
+            <th scope="col" class="r">持有数量</th>
+            <th scope="col" class="r">平均买入价</th>
+            <th scope="col" class="r">当前价格</th>
+            <th scope="col" class="r">市值</th>
+            <th scope="col" class="r">盈亏金额</th>
+            <th scope="col" class="r">收益率</th>
+            <th scope="col" class="r"><span class="sr-only">操作</span></th>
+          </tr>
+        </thead>
+        <tbody id="holdings-body"></tbody>
+        <tfoot id="holdings-foot"></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="data-title">
+    <div class="panel-head">
+      <div>
+        <h2 id="data-title">导入与备份</h2>
+        <p class="panel-sub">文件只在这台设备上读取和生成，不会上传到任何地方</p>
+      </div>
+    </div>
+    <div id="undo-bar" class="undo-bar" role="status" hidden>
+      <span id="undo-text"></span>
+      <button type="button" class="btn btn-quiet btn-small" id="undo-btn">撤销</button>
+    </div>
+    <div class="data-actions">
+      <button type="button" class="data-action" id="import-csv-btn">
+        <strong>从 CSV 导入持仓</strong>
+        <span>支持 Fidelity 导出的 Positions 文件。只新增，不覆盖已有持仓</span>
+      </button>
+      <button type="button" class="data-action" id="export-csv-btn">
+        <strong>导出持仓 CSV</strong>
+        <span>可用 Numbers、Excel 打开，也可以再导入</span>
+      </button>
+      <button type="button" class="data-action" id="backup-btn">
+        <strong>备份全部数据</strong>
+        <span>生成 .json 备份文件，换手机或清理浏览器前使用</span>
+      </button>
+      <button type="button" class="data-action" id="restore-btn">
+        <strong>从备份恢复</strong>
+        <span>用备份文件还原。恢复前会先让你确认</span>
+      </button>
+    </div>
+    <input type="file" id="csv-file" accept=".csv,text/csv,text/comma-separated-values,text/plain" hidden>
+    <input type="file" id="backup-file" accept=".json,application/json,text/plain" hidden>
+    <p id="data-message" class="data-message" role="alert" hidden></p>
+  </section>
+
+  <div class="charts">
+    <section class="panel" aria-labelledby="alloc-title">
+      <div class="panel-head">
+        <div>
+          <h2 id="alloc-title">资产配置</h2>
+          <p class="panel-sub">各项占总资产的比例</p>
+        </div>
+      </div>
+      <div id="allocation-chart" class="alloc"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="perf-title">
+      <div class="panel-head">
+        <div>
+          <h2 id="perf-title">投资表现</h2>
+          <p class="panel-sub">每个持仓的买入成本与当前市值对比</p>
+        </div>
+      </div>
+      <div id="performance-chart" class="perf"></div>
+      <p class="chart-note">没有历史行情数据，因此这里不画走势曲线，只比较成本和按当前价格计算的市值。</p>
+    </section>
+  </div>
+
+  <footer class="footer">
+    <p id="save-status" class="muted">数据保存在本机浏览器中。</p>
+    <div class="footer-actions">
+      <button type="button" class="btn btn-quiet" id="reset-btn">恢复示例数据</button>
+      <a class="btn btn-quiet" href="tests.html">运行计算测试</a>
+    </div>
+    <p class="muted small">本工具仅用于个人记录和学习，不构成投资建议，不会执行任何交易。</p>
+  </footer>
+</div>
+
+<!-- 添加 / 编辑弹窗 -->
+<div id="sheet-backdrop" class="sheet-backdrop" hidden></div>
+<div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+  <form id="holding-form" class="sheet-body" novalidate>
+    <div class="sheet-head">
+      <h2 id="sheet-title">添加持仓</h2>
+      <button type="button" class="icon-btn" id="sheet-close" aria-label="关闭">×</button>
+    </div>
+
+    <div id="holding-fields">
+      <div class="field-row">
+        <label class="field">
+          <span>股票代码</span>
+          <input id="f-symbol" name="symbol" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="例如 VOO">
+          <small class="err" id="e-symbol"></small>
+        </label>
+        <label class="field">
+          <span>类型</span>
+          <select id="f-type" name="type">
+            <option value="ETF">ETF</option>
+            <option value="股票">股票</option>
+          </select>
+          <small class="err" id="e-type"></small>
+        </label>
+      </div>
+      <label class="field">
+        <span>名称</span>
+        <input id="f-name" name="name" autocomplete="off" placeholder="例如 Vanguard S&amp;P 500 ETF（可不填）">
+        <small class="err" id="e-name"></small>
+      </label>
+      <label class="field">
+        <span>持有数量</span>
+        <input id="f-shares" name="shares" inputmode="decimal" autocomplete="off" placeholder="例如 10">
+        <small class="err" id="e-shares"></small>
+      </label>
+      <div class="field-row">
+        <label class="field">
+          <span>平均买入价（$）</span>
+          <input id="f-avgCost" name="avgCost" inputmode="decimal" autocomplete="off" placeholder="例如 420">
+          <small class="err" id="e-avgCost"></small>
+        </label>
+        <label class="field">
+          <span>当前价格（$）</span>
+          <input id="f-price" name="price" inputmode="decimal" autocomplete="off" placeholder="手动输入">
+          <small class="err" id="e-price"></small>
+        </label>
+      </div>
+      <p class="field-hint">当前价格需要你自己从券商 App 等处查看后手动填写，本页不会自动更新。</p>
+      <p id="form-preview" class="preview num"></p>
+    </div>
+
+    <div id="cash-fields" hidden>
+      <label class="field">
+        <span>现金（$）</span>
+        <input id="f-cash" name="cash" inputmode="decimal" autocomplete="off" placeholder="例如 5000">
+        <small class="err" id="e-cash"></small>
+      </label>
+    </div>
+
+    <div class="sheet-actions">
+      <button type="button" class="btn btn-danger" id="delete-btn" hidden>删除此持仓</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn btn-quiet" id="cancel-btn">取消</button>
+      <button type="submit" class="btn btn-primary" id="save-btn">保存</button>
+    </div>
+  </form>
+</div>
+
+<!-- CSV 导入：字段匹配 + 预览 -->
+<div id="dt-backdrop" class="sheet-backdrop" hidden></div>
+<div id="import-sheet" class="sheet sheet-wide" role="dialog" aria-modal="true" aria-labelledby="import-title" hidden>
+  <div class="sheet-body">
+    <div class="sheet-head">
+      <div>
+        <h2 id="import-title">导入预览</h2>
+        <p id="import-file" class="panel-sub"></p>
+      </div>
+      <button type="button" class="icon-btn dt-close" aria-label="关闭">×</button>
+    </div>
+
+    <div class="step">
+      <h3>1. 匹配字段</h3>
+      <p class="field-hint">已根据表头自动匹配。如果不对，请在下拉框中选择文件里对应的列。</p>
+      <div id="mapping-grid" class="mapping-grid"></div>
+      <label class="field field-inline">
+        <span>未单独指定时，新持仓的类型</span>
+        <select id="default-type">
+          <option value="ETF">ETF</option>
+          <option value="股票">股票</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="step">
+      <h3>2. 检查将要导入的数据</h3>
+      <div id="import-summary" class="chips"></div>
+      <p id="import-missing" class="err-box" hidden></p>
+      <div class="table-wrap">
+        <table class="holdings preview-table">
+          <thead>
+            <tr>
+              <th scope="col">状态</th>
+              <th scope="col" class="col-sym">代码</th>
+              <th scope="col" class="r">持有数量</th>
+              <th scope="col" class="r">平均买入价</th>
+              <th scope="col" class="r">当前价格</th>
+              <th scope="col" class="r">市值</th>
+              <th scope="col">类型</th>
+              <th scope="col">说明</th>
+            </tr>
+          </thead>
+          <tbody id="import-rows"></tbody>
+        </table>
+      </div>
+      <label id="cash-option" class="check" hidden>
+        <input type="checkbox" id="add-cash">
+        <span id="cash-option-text"></span>
+      </label>
+      <p class="field-hint">价格是文件导出那一刻的价格，不是实时行情。导入后的持仓会标上「导入」标签和日期。</p>
+    </div>
+
+    <div class="sheet-actions">
+      <span class="spacer"></span>
+      <button type="button" class="btn btn-quiet dt-close">取消</button>
+      <button type="button" class="btn btn-primary" id="confirm-import-btn" disabled>导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- 导出 / 备份 -->
+<div id="export-sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="export-title" hidden>
+  <div class="sheet-body">
+    <div class="sheet-head">
+      <h2 id="export-title">导出</h2>
+      <button type="button" class="icon-btn dt-close" aria-label="关闭">×</button>
+    </div>
+    <p id="export-desc" class="field-hint"></p>
+    <div class="sheet-actions">
+      <button type="button" class="btn btn-primary" id="save-file-btn">保存到「文件」</button>
+      <button type="button" class="btn btn-quiet" id="copy-btn">复制内容</button>
+    </div>
+    <p id="export-status" class="data-message" role="status" hidden></p>
+    <label class="field">
+      <span>文件内容</span>
+      <textarea id="export-text" rows="6" readonly spellcheck="false"></textarea>
+    </label>
+  </div>
+</div>
+
+<!-- 从备份恢复：确认 -->
+<div id="restore-sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="restore-title" hidden>
+  <div class="sheet-body">
+    <div class="sheet-head">
+      <h2 id="restore-title">从备份恢复</h2>
+      <button type="button" class="icon-btn dt-close" aria-label="关闭">×</button>
+    </div>
+    <div id="restore-info" class="restore-info"></div>
+    <p class="err-box">恢复会用备份<strong>替换</strong>当前的全部持仓和现金。恢复后可以点「撤销」回到现在的状态；建议先「备份全部数据」。</p>
+    <div class="sheet-actions">
+      <span class="spacer"></span>
+      <button type="button" class="btn btn-quiet dt-close">取消</button>
+      <button type="button" class="btn btn-primary" id="confirm-restore-btn">确认恢复</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/calc.js"></script>
+<script src="js/csv.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/data-tools.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
